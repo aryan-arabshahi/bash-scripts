@@ -20,6 +20,8 @@ check_root_access() {
 
 install_on_debian() {
 
+    OS_ID=$1
+
     echo -e "\n[+] Installing Docker\n"
 
     apt update && apt install -y \
@@ -29,10 +31,10 @@ install_on_debian() {
         gnupg \
         lsb-release
 
-    curl -fsSL https://download.docker.com/linux/debian/gpg | \
+    curl -fsSL https://download.docker.com/linux/${OS_ID}/gpg | \
         gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/${OS_ID} $(lsb_release -cs) stable" \
         | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     apt update && apt install -y \
@@ -54,9 +56,11 @@ install_on_debian() {
 # Abort script if there is no root access
 check_root_access
 
-case $(get_os_id) in
-    debian )
-        install_on_debian
+OS_ID=$(get_os_id)
+
+case $OS_ID in
+    debian|ubuntu )
+        install_on_debian $OS_ID
         ;;
     * )
         abort "[-] Unknown OS!"
